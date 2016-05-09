@@ -275,9 +275,8 @@ object CarbonDataRDDFactory extends Logging {
       }
 
       // Check if any load need to be deleted before loading new data
-      //      deleteLoadsAndUpdateMetadata(carbonLoadModel, carbonTable, partitioner,
-      // hdfsStoreLocation, false,
-      //        currentRestructNumber)
+      deleteLoadsAndUpdateMetadata(carbonLoadModel, cube, partitioner, hdfsStoreLocation, false,
+        currentRestructNumber)
       if (null == carbonLoadModel.getLoadMetadataDetails) {
         readLoadMetadataDetails(carbonLoadModel, hdfsStoreLocation)
       }
@@ -523,8 +522,8 @@ object CarbonDataRDDFactory extends Logging {
 
       // Delete marked loads
       val isUpdationRequired = DeleteLoadFolders
-        .deleteLoadFoldersFromFileSystem(carbonLoadModel, partitioner.partitionCount,
-          hdfsStoreLocation, isForceDeletion, currentRestructNumber, details)
+        .deleteLoadFoldersFromFileSystem(carbonLoadModel, hdfsStoreLocation,
+          partitioner.partitionCount, isForceDeletion, currentRestructNumber, details)
 
       if (isUpdationRequired) {
         // Update load metadate file after cleaning deleted nodes
@@ -534,10 +533,10 @@ object CarbonDataRDDFactory extends Logging {
           carbonLoadModel.getTableName, details.toList.asJava)
       }
     }
-
-    CarbonDataMergerUtil
-      .cleanUnwantedMergeLoadFolder(carbonLoadModel, partitioner.partitionCount, hdfsStoreLocation,
-        isForceDeletion, currentRestructNumber)
+// TODO:Need to hanlde this scanario for data compaction
+ //   CarbonDataMergerUtil
+ //     .cleanUnwantedMergeLoadFolder(carbonLoadModel, partitioner.partitionCount,
+ //    hdfsStoreLocation, isForceDeletion, currentRestructNumber)*/
 
   }
 

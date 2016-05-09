@@ -748,8 +748,9 @@ public final class CarbonLoaderUtil {
   }
 
   public static void writeLoadMetadata(CarbonDataLoadSchema schema, String schemaName,
-      String cubeName, List<LoadMetadataDetails> listOfLoadFolderDetails) throws IOException {
-    String dataLoadLocation = schema.getCarbonTable().getMetaDataFilepath() + File.separator
+      String tableName, List<LoadMetadataDetails> listOfLoadFolderDetails) throws IOException {
+    String dataLoadLocation = org.carbondata.core.carbon.metadata.CarbonMetadata.getInstance()
+        .getCarbonTable(schemaName + '_' + tableName).getMetaDataFilepath() + File.separator
         + CarbonCommonConstants.LOADMETADATA_FILENAME;
 
     DataOutputStream dataOutputStream;
@@ -793,8 +794,15 @@ public final class CarbonLoaderUtil {
   }
 
   public static String extractLoadMetadataFileLocation(CarbonLoadModel loadModel) {
-    CarbonTable carbonTable = CarbonMetadata.getInstance()
+    CarbonTable carbonTable = org.carbondata.core.carbon.metadata.CarbonMetadata.getInstance()
         .getCarbonTable(loadModel.getDatabaseName() + '_' + loadModel.getTableName());
+    if (null == carbonTable) {
+      Schema schema = loadModel.getSchema();
+      CarbonDef.Cube mondrianCube =
+          CarbonSchemaParser.getMondrianCube(schema, loadModel.getTableName());
+      CarbonMetadata.getInstance().loadCube(schema, schema.name, mondrianCube.name, mondrianCube);
+    }
+
     return carbonTable.getMetaDataFilepath();
   }
 
