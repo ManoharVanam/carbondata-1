@@ -19,6 +19,7 @@
 
 package org.carbondata.spark.testsuite.sortexpr
 
+import java.io.File
 import java.sql.Timestamp
 
 import org.apache.spark.sql.Row
@@ -34,8 +35,10 @@ import org.scalatest.BeforeAndAfterAll
 class TimestampDataTypeTestCase extends QueryTest with BeforeAndAfterAll {
 
   override def beforeAll {
-    sql("CREATE CUBE timestamptypecube DIMENSIONS (doj Timestamp, projectjoindate Timestamp, projectenddate Timestamp) OPTIONS (PARTITIONER [PARTITION_COUNT=1])");
-    sql("LOAD DATA fact from './src/test/resources/data.csv' INTO CUBE timestamptypecube PARTITIONDATA(DELIMITER ',', QUOTECHAR '\"')");
+    val pwd = new File(this.getClass.getResource("/").getPath + "/../../").getCanonicalPath
+    val dataFile = pwd + "/src/test/resources/data.csv";
+    sql("CREATE CUBE timestamptypecube DIMENSIONS (doj Timestamp, projectjoindate Timestamp, projectenddate Timestamp) MEASURES (salary DECIMAL) OPTIONS (PARTITIONER [PARTITION_COUNT=1])");
+    sql("LOAD DATA fact from '"+ dataFile +"' INTO CUBE timestamptypecube PARTITIONDATA(DELIMITER ',', QUOTECHAR '\"')");
   }
 
   test("select doj from timestamptypecube") {

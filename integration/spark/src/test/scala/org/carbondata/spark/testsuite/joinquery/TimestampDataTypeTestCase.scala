@@ -34,7 +34,7 @@ import org.scalatest.BeforeAndAfterAll
 class TimestampDataTypeTestCase extends QueryTest with BeforeAndAfterAll {
 
   override def beforeAll {
-    sql("CREATE CUBE timestamptypecube DIMENSIONS (doj Timestamp, projectjoindate Timestamp, projectenddate Timestamp) OPTIONS (PARTITIONER [PARTITION_COUNT=1])");
+    sql("CREATE CUBE timestamptypecube DIMENSIONS (doj Timestamp, projectjoindate Timestamp, projectenddate Timestamp) MEASURES (salary DECIMAL) OPTIONS (PARTITIONER [PARTITION_COUNT=1])");
     sql("LOAD DATA fact from './src/test/resources/data.csv' INTO CUBE timestamptypecube PARTITIONDATA(DELIMITER ',', QUOTECHAR '\"')");
   }
 
