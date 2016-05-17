@@ -39,7 +39,7 @@ class AllDataTypesTestCase4 extends QueryTest with BeforeAndAfterAll {
       .getCanonicalPath
     CarbonProperties.getInstance().addProperty("carbon.direct.surrogate","false")
 
-    sql("CREATE CUBE cube_restructure444 DIMENSIONS (a0 STRING,a STRING) MEASURES (b0 INTEGER) OPTIONS (AGGREGATION [b0 = count] PARTITIONER [CLASS = 'org.carbondata.integration.spark.partition.api.impl.SampleDataPartitionerImpl', COLUMNS= (a0) ,PARTITION_COUNT=1] )")
+    sql("CREATE CUBE cube_restructure444 DIMENSIONS (a0 STRING,a STRING) MEASURES(b0 INTEGER) OPTIONS (AGGREGATION [b0 = count] PARTITIONER [CLASS = 'org.carbondata.integration.spark.partition.api.impl.SampleDataPartitionerImpl', COLUMNS= (a0) ,PARTITION_COUNT=1] )")
     sql("LOAD DATA FACT FROM '"+currentDirectory+"/src/test/resources/restructure_cube.csv' INTO CUBE cube_restructure444 PARTITIONDATA(DELIMITER ',', QUOTECHAR  '\"')")
     sql("create schema myschema")
     sql("create schema myschema1")
