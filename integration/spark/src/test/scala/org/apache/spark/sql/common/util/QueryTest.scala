@@ -137,6 +137,8 @@ object QueryTest {
       val converted: Seq[Row] = answer.map { s =>
         Row.fromSeq(s.toSeq.map {
           case d: java.math.BigDecimal => BigDecimal(d)
+          case db: java.lang.Double => BigDecimal(db).setScale(4, BigDecimal.RoundingMode.HALF_UP)
+            .doubleValue()
           case b: Array[Byte] => b.toSeq
           case o => o
         })

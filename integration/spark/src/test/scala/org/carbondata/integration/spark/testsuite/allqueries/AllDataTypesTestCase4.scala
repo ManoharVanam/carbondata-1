@@ -38,20 +38,31 @@ class AllDataTypesTestCase4 extends QueryTest with BeforeAndAfterAll {
     val currentDirectory = new File(this.getClass.getResource("/").getPath + "/../../")
       .getCanonicalPath
     CarbonProperties.getInstance().addProperty("carbon.direct.surrogate","false")
+try {
+  sql(
+    "CREATE CUBE cube_restructure444 DIMENSIONS (a0 STRING,a STRING) MEASURES(b0 INTEGER) OPTIONS (AGGREGATION [b0 = count] PARTITIONER [CLASS = 'org.carbondata.integration.spark.partition.api.impl.SampleDataPartitionerImpl', COLUMNS= (a0) ,PARTITION_COUNT=1] )"
 
-    sql("CREATE CUBE cube_restructure444 DIMENSIONS (a0 STRING,a STRING) MEASURES(b0 INTEGER) OPTIONS (AGGREGATION [b0 = count] PARTITIONER [CLASS = 'org.carbondata.integration.spark.partition.api.impl.SampleDataPartitionerImpl', COLUMNS= (a0) ,PARTITION_COUNT=1] )")
-    sql("LOAD DATA FACT FROM '"+currentDirectory+"/src/test/resources/restructure_cube.csv' INTO CUBE cube_restructure444 PARTITIONDATA(DELIMITER ',', QUOTECHAR  '\"')")
-    sql("create schema myschema")
-    sql("create schema myschema1")
-    sql("create schema drug")
+  )
+  sql("LOAD DATA FACT FROM '" + currentDirectory + "/src/test/resources/restructure_cube.csv' INTO CUBE cube_restructure444 PARTITIONDATA(DELIMITER ',', QUOTECHAR  '\"')")
+  sql("create schema myschema")
+  sql("create schema myschema1")
+  sql("create schema drug")
+}catch {
+  case e : Exception =>print("ERROR: cube_restructure444")
+}
+
 
 
   }
   override def afterAll {
-    sql("drop cube cube_restructure444")
-    sql("drop schema myschema")
-    sql("drop schema myschema1")
-    sql("drop schema drug")
+    try {
+      sql("drop cube cube_restructure444")
+      sql("drop schema myschema")
+      sql("drop schema myschema1")
+      sql("drop schema drug")
+    }catch {
+      case e : Exception => print("ERROR: DROP cube_restructure444 ")
+    }
 
   }
 
