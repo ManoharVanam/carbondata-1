@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package org.carbondata.integration.spark.testsuite.allqueries
+package org.carbondata.spark.testsuite.allqueries
 
 import java.io.File
 
