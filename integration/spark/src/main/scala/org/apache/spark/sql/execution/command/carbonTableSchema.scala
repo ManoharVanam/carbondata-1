@@ -1438,7 +1438,7 @@ private[sql] case class LoadCube(
         if (null == relation.cubeMeta.partitioner.partitionColumn ||
             relation.cubeMeta.partitioner.partitionColumn(0).isEmpty) {
           LOGGER.info("Initiating Direct Load for the Cube : (" +
-                      schemaName + "." + cubeName + ")")
+                      schemaName + "." + tableName + ")")
           carbonLoadModel.setFactFilePath(factPath)
           carbonLoadModel.setCsvDelimiter(CarbonUtil.unescapeChar(delimiter))
           carbonLoadModel.setCsvHeader(fileHeader)
@@ -1453,11 +1453,11 @@ private[sql] case class LoadCube(
           partitionLocation += System.currentTimeMillis()
           FileFactory.mkdirs(partitionLocation, fileType)
           LOGGER.info("Initiating Data Partitioning for the Cube : (" +
-                      schemaName + "." + cubeName + ")")
+                      schemaName + "." + tableName + ")")
           carbonLoadModel.setFactFilePath(partitionLocation)
           partitionStatus = CarbonContext.partitionData(
             schemaName,
-            cubeName,
+            tableName,
             factPath,
             partitionLocation,
             delimiter,

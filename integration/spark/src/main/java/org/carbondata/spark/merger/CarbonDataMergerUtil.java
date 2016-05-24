@@ -86,7 +86,7 @@ public final class CarbonDataMergerUtil {
 
     SegmentStatusManager segmentStatusManager = new SegmentStatusManager(
         new AbsoluteTableIdentifier(
-            CarbonProperties.getInstance().getProperty(CarbonCommonConstants.STORE_LOCATION),
+            storeLocation,
             new CarbonTableIdentifier(carbonLoadModel.getDatabaseName(),
                 carbonLoadModel.getTableName())));
 
@@ -257,7 +257,7 @@ public final class CarbonDataMergerUtil {
 
     SegmentStatusManager segmentStatusManager = new SegmentStatusManager(
         new AbsoluteTableIdentifier(
-            CarbonProperties.getInstance().getProperty(CarbonCommonConstants.STORE_LOCATION),
+            storeLocation,
             new CarbonTableIdentifier(carbonLoadModel.getDatabaseName(),
                 carbonLoadModel.getTableName())));
     LoadMetadataDetails[] details = segmentStatusManager.readLoadMetadata(metadataFilePath);
@@ -339,7 +339,7 @@ public final class CarbonDataMergerUtil {
 
     SegmentStatusManager segmentStatusManager = new SegmentStatusManager(
         new AbsoluteTableIdentifier(
-            CarbonProperties.getInstance().getProperty(CarbonCommonConstants.STORE_LOCATION),
+            carbonLoadModel.getFactStoreLocation(),
             new CarbonTableIdentifier(carbonLoadModel.getDatabaseName(),
                 carbonLoadModel.getTableName())));
     LoadMetadataDetails[] loadDetails = segmentStatusManager.readLoadMetadata(metaDataFilepath);
@@ -389,7 +389,7 @@ public final class CarbonDataMergerUtil {
 
     SegmentStatusManager segmentStatusManager = new SegmentStatusManager(
         new AbsoluteTableIdentifier(
-            CarbonProperties.getInstance().getProperty(CarbonCommonConstants.STORE_LOCATION),
+            storeLocation,
             new CarbonTableIdentifier(loadModel.getDatabaseName(),
                 loadModel.getTableName())));
     LoadMetadataDetails[] details = segmentStatusManager.readLoadMetadata(loadMetadataFilePath);

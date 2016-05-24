@@ -59,7 +59,7 @@ public class SegmentStatusManager {
   private static final LogService LOG =
       LogServiceFactory.getLogService(SegmentStatusManager.class.getName());
 
-  AbsoluteTableIdentifier absoluteTableIdentifier;
+  private AbsoluteTableIdentifier absoluteTableIdentifier;
 
   public SegmentStatusManager(AbsoluteTableIdentifier absoluteTableIdentifier) {
     this.absoluteTableIdentifier = absoluteTableIdentifier;
@@ -200,7 +200,7 @@ public class SegmentStatusManager {
    * returns current time
    * @return
    */
-  public String readCurrentTime() {
+  private String readCurrentTime() {
     SimpleDateFormat sdf = new SimpleDateFormat(CarbonCommonConstants.CARBON_TIMESTAMP);
     String date = null;
 
@@ -245,19 +245,16 @@ public class SegmentStatusManager {
   public List<String> updateDeletionStatus(List<String> loadIds, String cubeFolderPath) {
     ICarbonLock carbonLock =
         CarbonLockFactory.getCarbonLockObj(cubeFolderPath, LockUsage.METADATA_LOCK);
-    BufferedWriter brWriter = null;
     List<String> invalidLoadIds = new ArrayList<String>(0);
     try {
       if (carbonLock.lockWithRetries()) {
         LOG.info("Metadata lock has been successfully acquired");
 
-        String dataLoadLocation = cubeFolderPath + CarbonCommonConstants.FILE_SEPARATOR
-            + CarbonCommonConstants.LOADMETADATA_FILENAME;
-
-        DataOutputStream dataOutputStream = null;
-        Gson gsonObjectToWrite = new Gson();
+        CarbonTablePath carbonTablePath = CarbonStorePath
+            .getCarbonTablePath(absoluteTableIdentifier.getStorePath(),
+                absoluteTableIdentifier.getCarbonTableIdentifier());
+        String dataLoadLocation = carbonTablePath.getTableStatusFilePath();
         LoadMetadataDetails[] listOfLoadFolderDetailsArray = null;
-
         if (!FileFactory.isFileExist(dataLoadLocation, FileFactory.getFileType(dataLoadLocation))) {
           // log error.
           LOG.error("Load metadata file is not present.");
@@ -266,32 +263,11 @@ public class SegmentStatusManager {
         // read existing metadata details in load metadata.
         listOfLoadFolderDetailsArray = readLoadMetadata(cubeFolderPath);
         if (listOfLoadFolderDetailsArray != null && listOfLoadFolderDetailsArray.length != 0) {
-          updateDeletionStatusInDetails(loadIds, listOfLoadFolderDetailsArray, invalidLoadIds);
+          updateDeletionStatus(loadIds, listOfLoadFolderDetailsArray, invalidLoadIds);
           if (!invalidLoadIds.isEmpty()) {
             LOG.warn("Load doesnt exist or it is already deleted , LoadSeqId-" + invalidLoadIds);
           }
-
-          AtomicFileOperations fileWrite = new AtomicFileOperationsImpl(dataLoadLocation,
-              FileFactory.getFileType(dataLoadLocation));
-
-          // write the updated data into the metadata file.
-
-          try {
-            dataOutputStream = fileWrite.openForWrite(FileWriteOperation.OVERWRITE);
-            brWriter = new BufferedWriter(new OutputStreamWriter(dataOutputStream,
-                CarbonCommonConstants.CARBON_DEFAULT_STREAM_ENCODEFORMAT));
-
-            String metadataInstance = gsonObjectToWrite.toJson(listOfLoadFolderDetailsArray);
-            brWriter.write(metadataInstance);
-          } finally {
-            if (null != brWriter) {
-              brWriter.flush();
-            }
-            CarbonUtil.closeStreams(brWriter);
-          }
-
-          fileWrite.close();
-
+          writeLoadDetailsIntoFile(dataLoadLocation, listOfLoadFolderDetailsArray);
         } else {
           LOG.warn("Load doesnt exist or it is already deleted , LoadSeqId-" + loadIds);
           return loadIds;
@@ -319,7 +295,6 @@ public class SegmentStatusManager {
   public List<String> updateDeletionStatus(String loadDate, String tableFolderPath) {
     ICarbonLock carbonLock =
         CarbonLockFactory.getCarbonLockObj(tableFolderPath, LockUsage.METADATA_LOCK);
-    BufferedWriter brWriter = null;
     List<String> invalidLoadTimestamps = new ArrayList<String>(0);
     try {
       if (carbonLock.lockWithRetries()) {
@@ -329,8 +304,6 @@ public class SegmentStatusManager {
             .getCarbonTablePath(absoluteTableIdentifier.getStorePath(),
                 absoluteTableIdentifier.getCarbonTableIdentifier());
         String dataLoadLocation = carbonTablePath.getTableStatusFilePath();
-        DataOutputStream dataOutputStream = null;
-        Gson gsonObjectToWrite = new Gson();
         LoadMetadataDetails[] listOfLoadFolderDetailsArray = null;
 
         if (!FileFactory.isFileExist(dataLoadLocation, FileFactory.getFileType(dataLoadLocation))) {
@@ -342,7 +315,7 @@ public class SegmentStatusManager {
         // read existing metadata details in load metadata.
         listOfLoadFolderDetailsArray = readLoadMetadata(tableFolderPath);
         if (listOfLoadFolderDetailsArray != null && listOfLoadFolderDetailsArray.length != 0) {
-          updateDeletionStatusInDetails(loadDate, listOfLoadFolderDetailsArray,
+          updateDeletionStatus(loadDate, listOfLoadFolderDetailsArray,
               invalidLoadTimestamps);
           if (!invalidLoadTimestamps.isEmpty()) {
             LOG.warn("Load doesnt exist or it is already deleted , LoadTimestamps-"
@@ -358,26 +331,7 @@ public class SegmentStatusManager {
             }
           }
 
-          AtomicFileOperations fileWrite = new AtomicFileOperationsImpl(dataLoadLocation,
-              FileFactory.getFileType(dataLoadLocation));
-
-          // write the updated data into the metadata file.
-
-          try {
-            dataOutputStream = fileWrite.openForWrite(FileWriteOperation.OVERWRITE);
-            brWriter = new BufferedWriter(new OutputStreamWriter(dataOutputStream,
-                CarbonCommonConstants.CARBON_DEFAULT_STREAM_ENCODEFORMAT));
-
-            String metadataInstance = gsonObjectToWrite.toJson(listOfLoadFolderDetailsArray);
-            brWriter.write(metadataInstance);
-          } finally {
-            if (null != brWriter) {
-              brWriter.flush();
-            }
-            CarbonUtil.closeStreams(brWriter);
-          }
-
-          fileWrite.close();
+          writeLoadDetailsIntoFile(dataLoadLocation, listOfLoadFolderDetailsArray);
 
         } else {
           LOG.warn("Load doesnt exist or it is already deleted , LoadTimestamp-" + loadDate);
@@ -398,12 +352,48 @@ public class SegmentStatusManager {
   }
 
   /**
-   * updates deletion status details
+   * writes load details into a given file at @param dataLoadLocation
+   *
+   * @param dataLoadLocation
+   * @param listOfLoadFolderDetailsArray
+   * @throws IOException
+   */
+  private void writeLoadDetailsIntoFile(String dataLoadLocation,
+      LoadMetadataDetails[] listOfLoadFolderDetailsArray) throws IOException {
+    AtomicFileOperations fileWrite =
+        new AtomicFileOperationsImpl(dataLoadLocation, FileFactory.getFileType(dataLoadLocation));
+    BufferedWriter brWriter = null;
+    DataOutputStream dataOutputStream = null;
+    Gson gsonObjectToWrite = new Gson();
+    // write the updated data into the metadata file.
+
+    try {
+      dataOutputStream = fileWrite.openForWrite(FileWriteOperation.OVERWRITE);
+      brWriter = new BufferedWriter(new OutputStreamWriter(dataOutputStream,
+          CarbonCommonConstants.CARBON_DEFAULT_STREAM_ENCODEFORMAT));
+
+      String metadataInstance = gsonObjectToWrite.toJson(listOfLoadFolderDetailsArray);
+      brWriter.write(metadataInstance);
+    } catch (IOException ioe) {
+      LOG.error("Error message: " + ioe.getLocalizedMessage());
+    } finally {
+      if (null != brWriter) {
+        brWriter.flush();
+      }
+      CarbonUtil.closeStreams(brWriter);
+    }
+
+    fileWrite.close();
+  }
+
+  /**
+   * updates deletion status details for each load and returns invalidLoadIds
    * @param loadIds
    * @param listOfLoadFolderDetailsArray
    * @param invalidLoadIds
+   * @return invalidLoadIds
    */
-  public void updateDeletionStatusInDetails(List<String> loadIds,
+  public void updateDeletionStatus(List<String> loadIds,
       LoadMetadataDetails[] listOfLoadFolderDetailsArray, List<String> invalidLoadIds) {
     for (String loadId : loadIds) {
       boolean loadFound = false;
@@ -436,13 +426,14 @@ public class SegmentStatusManager {
   }
 
   /**
-   * updates deletion status and details
+   * updates deletion status details for load and returns invalidLoadTimestamps
    *
    * @param loadDate
    * @param listOfLoadFolderDetailsArray
    * @param invalidLoadTimestamps
+   * @return invalidLoadTimestamps
    */
-  public void updateDeletionStatusInDetails(String loadDate,
+  public void updateDeletionStatus(String loadDate,
       LoadMetadataDetails[] listOfLoadFolderDetailsArray, List<String> invalidLoadTimestamps) {
     // For each load timestamp loop through data and if the
     // required load timestamp is found then mark
@@ -480,7 +471,7 @@ public class SegmentStatusManager {
    *
    * @param streams - streams to close.
    */
-  public void closeStreams(Closeable... streams) {
+  private void closeStreams(Closeable... streams) {
     // Added if to avoid NullPointerException in case one stream is being passed as null
     if (null != streams) {
       for (Closeable stream : streams) {
@@ -499,7 +490,7 @@ public class SegmentStatusManager {
    * unlocks given file
    * @param carbonLock
    */
-  public void fileUnlock(ICarbonLock carbonLock) {
+  private void fileUnlock(ICarbonLock carbonLock) {
     if (carbonLock.unlock()) {
       LOG.info("Metadata lock has been successfully released");
     } else {
