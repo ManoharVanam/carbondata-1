@@ -1,4 +1,23 @@
-package org.carbondata.integration.spark.testsuite.dataretention
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
+package org.carbondata.spark.testsuite.dataretention
 
 import java.io.File
 import java.text.SimpleDateFormat
@@ -11,6 +30,7 @@ import org.carbondata.core.util.CarbonProperties
 import org.scalatest.BeforeAndAfterAll
 
 /**
+  * This class contains data retention test cases
   * Created by Manohar on 5/9/2016.
   */
 class DataRetentionTestCase extends QueryTest with BeforeAndAfterAll {
@@ -44,26 +64,13 @@ class DataRetentionTestCase extends QueryTest with BeforeAndAfterAll {
     sql("LOAD DATA LOCAL INPATH '" + resource + "dataretention3.csv' INTO TABLE DataRetentionTable " +
       "OPTIONS('DELIMITER' = ',')")
 
-
-
-    sql("SELECT country, count(salary) AS amount FROM DataRetentionTable WHERE country" +
-      " IN ('china','ind','aus','eng') GROUP BY country"
-    ).show()
-
-    //cc.sql("DROP CUBE DataRetentionTable")
-    //sql("SHOW LOADS FOR TABLE DataRetentionTable").show()
-
-    //Thread.sleep(1000*60)
-    //cc.sql("clean files for TABLE DataRetentionTable")
-    //cc.sql("DELETE SEGMENTS FROM TABLE DataRetentionTable where STARTTIME before '2016-05-09
-    // 22:22:00'")
   }
 
   override def afterAll {
     sql("drop table DataRetentionTable")
   }
 
-  test("RetentionTest1") {
+  test("RetentionTest_withoutDelete") {
     checkAnswer(
       sql("SELECT country, count(salary) AS amount FROM DataRetentionTable WHERE country" +
         " IN ('china','ind','aus','eng') GROUP BY country"
@@ -72,11 +79,9 @@ class DataRetentionTestCase extends QueryTest with BeforeAndAfterAll {
     )
   }
 
-  test("RetentionTest2") {
+  test("RetentionTest_DeleteSegmentsByLoadTime") {
     // delete ind, aus segments
-    sql("SHOW LOADS FOR TABLE DataRetentionTable").show()
     sql("DELETE SEGMENTS FROM TABLE DataRetentionTable where STARTTIME before '" + time + "'")
-    sql("SHOW LOADS FOR TABLE DataRetentionTable").show()
     checkAnswer(
       sql("SELECT country, count(salary) AS amount FROM DataRetentionTable WHERE country" +
         " IN ('china','ind','aus','eng') GROUP BY country"
@@ -85,13 +90,11 @@ class DataRetentionTestCase extends QueryTest with BeforeAndAfterAll {
     )
   }
 
-  test("RetentionTest3") {
+  test("RetentionTest3_DeleteByLoadId") {
     // delete load 2 and load ind segment
-    sql("SHOW LOADS FOR TABLE DataRetentionTable").show()
     sql("DELETE LOAD 2 FROM TABLE DataRetentionTable")
     sql("LOAD DATA LOCAL INPATH '" + resource + "dataretention1.csv' INTO TABLE DataRetentionTable " +
       "OPTIONS('DELIMITER' = ',')")
-    sql("SHOW LOADS FOR TABLE DataRetentionTable").show()
     checkAnswer(
       sql("SELECT country, count(salary) AS amount FROM DataRetentionTable WHERE country" +
         " IN ('china','ind','aus','eng') GROUP BY country"

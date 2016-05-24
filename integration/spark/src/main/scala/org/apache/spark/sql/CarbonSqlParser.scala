@@ -1115,7 +1115,8 @@ class CarbonSqlParser()
   }
 
   protected lazy val showLoads: Parser[LogicalPlan] =
-    SHOW ~> LOADS ~> FOR ~> (CUBE | TABLE) ~> (ident <~ ".").? ~ ident ~ (LIMIT ~> numericLit).? <~
+    SHOW ~> (LOADS|SEGMENTS) ~> FOR ~> (CUBE | TABLE) ~> (ident <~ ".").? ~ ident ~
+      (LIMIT ~> numericLit).? <~
       opt(";") ^^ {
       case schemaName ~ cubeName ~ limit => ShowLoadsCommand(schemaName, cubeName, limit)
     }
@@ -1129,8 +1130,9 @@ class CarbonSqlParser()
       }
     }
 
+  @deprecated
   protected lazy val deleteLoadsByLoadDate: Parser[LogicalPlan] =
-    DELETE ~> SEGMENTS ~> FROM ~> (CUBE | TABLE) ~> (ident <~ ".").? ~ ident ~
+    DELETE ~> (LOADS|SEGMENTS) ~> FROM ~> (CUBE | TABLE) ~> (ident <~ ".").? ~ ident ~
       (WHERE ~> (STARTTIME <~ BEFORE) ~ stringLit) <~
       opt(";") ^^ {
       case schema ~ cube ~ condition =>
