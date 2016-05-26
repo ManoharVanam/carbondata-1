@@ -444,12 +444,22 @@ class CarbonSqlParser()
                                   tableProperties: Map[String, String]): tableModel
   = {
 
+    var dictIncludeCols: Seq[String] = Seq[String]()
+    var dictExcludeCols: Seq[String] = Seq[String]()
     // get column groups configuration from table properties.
     val groupCols: Seq[String] = updateColumnGroupsInField(tableProperties)
 
+    if (tableProperties.get("DICTIONARY_EXCLUDE").isDefined) {
+      dictExcludeCols = tableProperties.get("DICTIONARY_EXCLUDE").get.split(',').map(_.trim)
+    }
+    if (tableProperties.get("DICTIONARY_INCLUDE").isDefined) {
+      dictIncludeCols = tableProperties.get("DICTIONARY_INCLUDE").get.split(",").map(_.trim)
+    }
+
     var (dims: Seq[Field], noDictionaryDims: Seq[String]) = extractDimColsAndNoDictionaryFields(
-      fields, tableProperties)
-    val msrs: Seq[Field] = extractMsrColsFromFields(fields, tableProperties)
+      fields, tableProperties, dictExcludeCols, dictIncludeCols )
+    val msrs: Seq[Field] = extractMsrColsFromFields(fields, tableProperties, dictExcludeCols,
+      dictIncludeCols)
 
 
     val partitioner: Option[Partitioner] = getPartitionerObject(partitionCols, tableProperties)
@@ -537,38 +547,31 @@ class CarbonSqlParser()
    *
    * @param fields
    * @param tableProperties
+   * @param dictExcludeCols
+   * @param dictIncludeCols
    * @return
    */
   protected def extractDimColsAndNoDictionaryFields(fields: Seq[Field],
-                                                    tableProperties: Map[String, String]):
-  (Seq[Field], Seq[String]) = {
+    tableProperties: Map[String, String], dictExcludeCols: Seq[String],
+    dictIncludeCols: Seq[String]): (Seq[Field], Seq[String]) = {
     var dimFields: LinkedHashSet[Field] = LinkedHashSet[Field]()
-    var dictExcludeCols: Array[String] = Array[String]()
     var noDictionaryDims: Seq[String] = Seq[String]()
-    var dictIncludeCols: Seq[String] = Seq[String]()
 
     // All excluded cols should be there in create table cols
-    if (tableProperties.get("DICTIONARY_EXCLUDE").isDefined) {
-      dictExcludeCols = tableProperties.get("DICTIONARY_EXCLUDE").get.split(',').map(_.trim)
-      dictExcludeCols
-        .map { dictExcludeCol =>
+      dictExcludeCols.foreach { dictExcludeCol =>
           if (!fields.exists(x => x.column.equalsIgnoreCase(dictExcludeCol))) {
             val errormsg = "DICTIONARY_EXCLUDE column: " + dictExcludeCol +
               " is no exist in table. Please check create table statement."
             throw new MalformedCarbonCommandException(errormsg)
           }
         }
-    }
     // All included cols should be there in create table cols
-    if (tableProperties.get("DICTIONARY_INCLUDE").isDefined) {
-      dictIncludeCols = tableProperties.get("DICTIONARY_INCLUDE").get.split(",").map(_.trim)
-      dictIncludeCols.map { distIncludeCol =>
+      dictIncludeCols.foreach { distIncludeCol =>
           if (!fields.exists(x => x.column.equalsIgnoreCase(distIncludeCol))) {
             val errormsg = "DICTIONARY_INCLUDE column: " + distIncludeCol +
               " is no exist in table. Please check create table statement."
             throw new MalformedCarbonCommandException(errormsg)
           }
-        }
     }
 
     // include cols should contain exclude cols
@@ -631,29 +634,20 @@ class CarbonSqlParser()
    *
    * @param fields
    * @param tableProperties
+   * @param dictExcludeCols
+   * @param dictIncludeCols
    * @return
    */
   protected def extractMsrColsFromFields(fields: Seq[Field],
-                                         tableProperties: Map[String, String]): Seq[Field] = {
+    tableProperties: Map[String, String], dictExcludeCols: Seq[String],
+    dictIncludeCols: Seq[String]): Seq[Field] = {
     var msrFields: Seq[Field] = Seq[Field]()
-    var dictIncludedCols: Array[String] = Array[String]()
-    var dictExcludedCols: Array[String] = Array[String]()
-
-    // get all included cols
-    if (None != tableProperties.get("DICTIONARY_INCLUDE")) {
-      dictIncludedCols = tableProperties.get("DICTIONARY_INCLUDE").get.split(',').map(_.trim)
-    }
-
-    // get all excluded cols
-    if (None != tableProperties.get("DICTIONARY_EXCLUDE")) {
-      dictExcludedCols = tableProperties.get("DICTIONARY_EXCLUDE").get.split(',').map(_.trim)
-    }
 
     // by default consider all non string cols as msrs. consider all include/ exclude cols as dims
     fields.foreach(field => {
       if (!isDetectAsDimentionDatatype(field.dataType.get)) {
-          if (!dictIncludedCols.exists(x => x.equalsIgnoreCase(field.column)) &&
-            !dictExcludedCols.exists(x => x.equalsIgnoreCase(field.column))) {
+          if (!dictIncludeCols.exists(x => x.equalsIgnoreCase(field.column)) &&
+            !dictExcludeCols.exists(x => x.equalsIgnoreCase(field.column))) {
             msrFields :+= field
           }
       }
