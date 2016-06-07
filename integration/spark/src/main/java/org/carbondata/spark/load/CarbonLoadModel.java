@@ -325,13 +325,6 @@ public class CarbonLoadModel implements Serializable {
   }
 
   /**
-   * @return Returns the factStoreLocation.
-   */
-  public String getStoreLocation() {
-    return storeLocation;
-  }
-
-  /**
    * @param factStoreLocation The factStoreLocation to set.
    */
   public void setStoreLocation(String factStoreLocation) {
@@ -343,6 +336,13 @@ public class CarbonLoadModel implements Serializable {
    */
   public String getAggTableName() {
     return aggTableName;
+  }
+
+  /**
+   * @return Returns the factStoreLocation.
+   */
+  public String getStoreLocation() {
+    return storeLocation;
   }
 
   /**

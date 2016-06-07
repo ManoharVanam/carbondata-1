@@ -71,6 +71,7 @@ class GlobalDictionaryUtilTestCase extends QueryTest with BeforeAndAfterAll {
     carbonLoadModel.setCsvDelimiter(",")
     carbonLoadModel.setComplexDelimiterLevel1("\\$")
     carbonLoadModel.setComplexDelimiterLevel2("\\:")
+    carbonLoadModel.setStoreLocation(relation.cubeMeta.storePath)
     carbonLoadModel
   }
 

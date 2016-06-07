@@ -66,7 +66,7 @@ public class TableInfo implements Serializable {
   private String metaDataFilepath;
 
   /**
-   * store location (check if it is really required )
+   * store location
    */
   private String storeLocation;
 

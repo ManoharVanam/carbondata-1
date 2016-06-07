@@ -392,13 +392,13 @@ class CarbonMetastoreCatalog(hive: HiveContext, val storePath: String, client: C
   }
 
   def updateMetadataByThriftTable(schemaFilePath: String,
-      tableInfo: TableInfo, dbName: String, tableName: String): Unit = {
+      tableInfo: TableInfo, dbName: String, tableName: String, storeLocation: String): Unit = {
 
     tableInfo.getFact_table.getSchema_evolution.getSchema_evolution_history.get(0)
       .setTime_stamp(System.currentTimeMillis())
     val schemaConverter = new ThriftWrapperSchemaConverterImpl
     val wrapperTableInfo = schemaConverter
-      .fromExternalToWrapperTableInfo(tableInfo, dbName, tableName)
+      .fromExternalToWrapperTableInfo(tableInfo, dbName, tableName, storeLocation)
     wrapperTableInfo
       .setMetaDataFilepath(CarbonTablePath.getFolderContainingFile(schemaFilePath))
     updateMetadataByWrapperTable(wrapperTableInfo)

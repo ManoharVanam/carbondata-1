@@ -331,7 +331,7 @@ object CarbonDataRDDFactory extends Logging {
             factTableName,
             validSegments
           )
-          carbonLoadModel.setFactStoreLocation(carbonMergerMapping.hdfsStoreLocation)
+          carbonLoadModel.setStoreLocation(carbonMergerMapping.hdfsStoreLocation)
           val segmentStatusManager = new SegmentStatusManager(new AbsoluteTableIdentifier
           (CarbonProperties.getInstance().getProperty(CarbonCommonConstants.STORE_LOCATION),
             new CarbonTableIdentifier(carbonLoadModel.getDatabaseName, carbonLoadModel.getTableName)
