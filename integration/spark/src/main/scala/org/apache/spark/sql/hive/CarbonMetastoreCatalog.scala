@@ -58,7 +58,7 @@ case class CarbonMetaData(dims: Seq[String],
   carbonTable: CarbonTable,
   dictionaryMap: DictionaryMap)
 
-case class TableMeta(carbonTableIdentifier: CarbonTableIdentifier, dataPath: String,
+case class TableMeta(carbonTableIdentifier: CarbonTableIdentifier, storePath: String,
     var carbonTable: CarbonTable, partitioner: Partitioner)
 
 object CarbonMetastoreCatalog {
@@ -350,6 +350,7 @@ class CarbonMetastoreCatalog(hive: HiveContext, val storePath: String, client: C
     val schemaFilePath = carbonTablePath.getSchemaFilePath
     val schemaMetadataPath = CarbonTablePath.getFolderContainingFile(schemaFilePath)
     tableInfo.setMetaDataFilepath(schemaMetadataPath)
+    tableInfo.setStoreLocation(storePath)
     CarbonMetadata.getInstance().loadTableMetadata(tableInfo)
 
     val cubeMeta = TableMeta(

@@ -177,7 +177,7 @@ class GlobalDictionaryUtilTestCase extends QueryTest with BeforeAndAfterAll {
     GlobalDictionaryUtil
       .generateGlobalDictionary(CarbonHiveContext,
         carbonLoadModel,
-        sampleRelation.cubeMeta.dataPath
+        sampleRelation.cubeMeta.storePath
       )
 
     // test for dimension table
@@ -195,7 +195,7 @@ class GlobalDictionaryUtilTestCase extends QueryTest with BeforeAndAfterAll {
     GlobalDictionaryUtil
       .generateGlobalDictionary(CarbonHiveContext,
         carbonLoadModel,
-        complexRelation.cubeMeta.dataPath
+        complexRelation.cubeMeta.storePath
       )
   }
 
@@ -211,7 +211,7 @@ class GlobalDictionaryUtilTestCase extends QueryTest with BeforeAndAfterAll {
     GlobalDictionaryUtil
       .generateGlobalDictionary(CarbonHiveContext,
         carbonLoadModel,
-        sampleRelation.cubeMeta.dataPath
+        sampleRelation.cubeMeta.storePath
       )
     checkDictionary(incrementalLoadTableRelation, "deviceInformationId", "100010")
 
@@ -224,7 +224,7 @@ class GlobalDictionaryUtilTestCase extends QueryTest with BeforeAndAfterAll {
     GlobalDictionaryUtil
       .generateGlobalDictionary(CarbonHiveContext,
         carbonLoadModel,
-        sampleRelation.cubeMeta.dataPath
+        sampleRelation.cubeMeta.storePath
       )
     checkDictionary(incrementalLoadTableRelation, "deviceInformationId", "100077")
   }

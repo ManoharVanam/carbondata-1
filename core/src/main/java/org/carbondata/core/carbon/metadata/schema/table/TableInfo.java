@@ -65,6 +65,11 @@ public class TableInfo implements Serializable {
    */
   private String metaDataFilepath;
 
+  /**
+   * store location (check if it is really required )
+   */
+  private String storeLocation;
+
   public TableInfo() {
     aggregateTableList = new ArrayList<TableSchema>(CarbonCommonConstants.DEFAULT_COLLECTION_SIZE);
   }
@@ -179,6 +184,14 @@ public class TableInfo implements Serializable {
    */
   public void setMetaDataFilepath(String metaDataFilepath) {
     this.metaDataFilepath = metaDataFilepath;
+  }
+
+  public String getStoreLocation() {
+    return storeLocation;
+  }
+
+  public void setStoreLocation(String storeLocation) {
+    this.storeLocation = storeLocation;
   }
 
   /**
