@@ -2017,7 +2017,9 @@ private[sql] case class CleanFiles(
     val table = relation.cubeMeta.carbonTable
     carbonLoadModel.setAggTables(table.getAggregateTablesName.asScala.toArray)
     carbonLoadModel.setTableName(table.getFactTableName)
-
+    carbonLoadModel.setStoreLocation(relation.cubeMeta.storePath)
+    val dataLoadSchema = new CarbonDataLoadSchema(table)
+    carbonLoadModel.setCarbonDataLoadSchema(dataLoadSchema)
     CarbonDataRDDFactory.cleanFiles(
       sqlContext.sparkContext,
       carbonLoadModel,

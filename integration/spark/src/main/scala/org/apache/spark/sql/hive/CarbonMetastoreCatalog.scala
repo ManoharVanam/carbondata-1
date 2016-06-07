@@ -286,7 +286,7 @@ class CarbonMetastoreCatalog(hive: HiveContext, val storePath: String, client: C
 
                   val schemaConverter = new ThriftWrapperSchemaConverterImpl
                   val wrapperTableInfo = schemaConverter
-                    .fromExternalToWrapperTableInfo(tableInfo, dbName, tableName)
+                    .fromExternalToWrapperTableInfo(tableInfo, dbName, tableName, basePath)
                   val carbonTableIdentifier = new CarbonTableIdentifier(dbName, tableName)
                   val schemaFilePath = CarbonStorePath
                     .getCarbonTablePath(storePath, carbonTableIdentifier).getSchemaFilePath
