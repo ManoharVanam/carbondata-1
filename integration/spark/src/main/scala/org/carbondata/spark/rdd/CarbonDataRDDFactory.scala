@@ -129,7 +129,7 @@ object CarbonDataRDDFactory extends Logging {
     }
     var segmentStatusManager = new SegmentStatusManager(
       new AbsoluteTableIdentifier(
-        cube.getStoreLocation,
+        cube.getStorePath,
         new CarbonTableIdentifier(schemaName, tableName)))
     val loadMetadataDetailsArray = segmentStatusManager.readLoadMetadata(cube.getMetaDataFilepath())
       .toList
@@ -331,7 +331,7 @@ object CarbonDataRDDFactory extends Logging {
             factTableName,
             validSegments
           )
-          carbonLoadModel.setStoreLocation(carbonMergerMapping.hdfsStoreLocation)
+          carbonLoadModel.setStorePath(carbonMergerMapping.hdfsStoreLocation)
           val segmentStatusManager = new SegmentStatusManager(new AbsoluteTableIdentifier
           (CarbonProperties.getInstance().getProperty(CarbonCommonConstants.STORE_LOCATION),
             new CarbonTableIdentifier(carbonLoadModel.getDatabaseName, carbonLoadModel.getTableName)
@@ -637,7 +637,7 @@ object CarbonDataRDDFactory extends Logging {
     val metadataPath = model.getCarbonDataLoadSchema.getCarbonTable.getMetaDataFilepath
     var segmentStatusManager = new SegmentStatusManager(
       new AbsoluteTableIdentifier(
-        model.getStoreLocation,
+        model.getStorePath,
         new CarbonTableIdentifier(model.getDatabaseName, model.getTableName)))
     val details = segmentStatusManager.readLoadMetadata(metadataPath)
     model.setLoadMetadataDetails(details.toList.asJava)
@@ -654,7 +654,7 @@ object CarbonDataRDDFactory extends Logging {
         .extractLoadMetadataFileLocation(carbonLoadModel)
       val segmentStatusManager = new SegmentStatusManager(
         new AbsoluteTableIdentifier(
-          cube.getStoreLocation,
+          cube.getStorePath,
           new CarbonTableIdentifier(carbonLoadModel.getDatabaseName, carbonLoadModel.getTableName)
         )
       )

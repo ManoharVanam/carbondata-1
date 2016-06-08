@@ -390,7 +390,7 @@ object GlobalDictionaryUtil extends Logging {
     // update Metadata
     val catalog = CarbonEnv.getInstance(sqlContext).carbonCatalog
     catalog.updateMetadataByThriftTable(schemaFilePath, tableInfo,
-        model.table.getDatabaseName, model.table.getTableName, carbonLoadModel.getStoreLocation)
+        model.table.getDatabaseName, model.table.getTableName, carbonLoadModel.getStorePath)
 
     // update CarbonDataLoadSchema
     val carbonTable = catalog.lookupRelation1(Option(model.table.getDatabaseName),

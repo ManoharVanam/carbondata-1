@@ -359,7 +359,7 @@ public class ThriftWrapperSchemaConverterImpl implements SchemaConverter {
             .getTime_stamp());
     wrapperTableInfo.setDatabaseName(dbName);
     wrapperTableInfo.setTableUniqueName(dbName + "_" + tableName);
-    wrapperTableInfo.setStoreLocation(storePath);
+    wrapperTableInfo.setStorePath(storePath);
     wrapperTableInfo.setFactTable(
         fromExternalToWrapperTableSchema(externalTableInfo.getFact_table(), tableName));
     List<TableSchema> aggTablesList = new ArrayList<TableSchema>();

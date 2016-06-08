@@ -147,9 +147,8 @@ public final class CarbonDataMergerUtil {
       String metaDataFilepath, String MergedLoadName, CarbonLoadModel carbonLoadModel,
       String mergeLoadStartTime) {
 
-    SegmentStatusManager segmentStatusManager = new SegmentStatusManager(
-        new AbsoluteTableIdentifier(
-            carbonLoadModel.getStoreLocation(),
+    AbsoluteTableIdentifier absoluteTableIdentifier =
+        new AbsoluteTableIdentifier(carbonLoadModel.getStorePath(),
             new CarbonTableIdentifier(carbonLoadModel.getDatabaseName(),
                 carbonLoadModel.getTableName()));
 

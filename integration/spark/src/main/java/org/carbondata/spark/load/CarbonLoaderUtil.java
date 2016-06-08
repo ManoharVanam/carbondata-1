@@ -103,7 +103,7 @@ public final class CarbonLoaderUtil {
         schmaModel.getCsvFilePath() != null && schmaModel.getCsvFilePath().startsWith("hdfs:");
     int allocate = null != schmaModel.getCsvFilePath() ? 1 : schmaModel.getFilesToProcess().size();
     GraphGenerator generator = new GraphGenerator(model, hdfsReadMode, loadModel.getPartitionId(),
-        loadModel.getStoreLocation(), currentRestructNumber, allocate,
+        loadModel.getStorePath(), currentRestructNumber, allocate,
         loadModel.getCarbonDataLoadSchema(), loadModel.getSegmentId());
     generator.generateGraph();
   }
@@ -732,7 +732,7 @@ public final class CarbonLoaderUtil {
       String schemaName, String tableName,
       List<LoadMetadataDetails> listOfLoadFolderDetails) throws IOException {
     CarbonTablePath carbonTablePath = CarbonStorePath
-        .getCarbonTablePath(schema.getCarbonTable().getStoreLocation(),
+        .getCarbonTablePath(schema.getCarbonTable().getStorePath(),
             new CarbonTableIdentifier(schemaName, tableName));
     String dataLoadLocation = carbonTablePath.getTableStatusFilePath();
 

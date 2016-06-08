@@ -53,7 +53,7 @@ public final class LoadMetadataUtil {
     String metaDataLocation = cube.getMetaDataFilepath();
     SegmentStatusManager segmentStatusManager = new SegmentStatusManager(
         new AbsoluteTableIdentifier(
-            loadModel.getStoreLocation(),
+            loadModel.getStorePath(),
             new CarbonTableIdentifier(loadModel.getDatabaseName(),
                 loadModel.getTableName())));
     LoadMetadataDetails[] details = segmentStatusManager.readLoadMetadata(metaDataLocation);

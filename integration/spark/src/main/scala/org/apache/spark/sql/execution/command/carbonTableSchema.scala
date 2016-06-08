@@ -1258,7 +1258,7 @@ private[sql] case class DeleteLoadsById(
 
     var segmentStatusManager =
       new SegmentStatusManager(new AbsoluteTableIdentifier(
-        carbonTable.getStoreLocation, new CarbonTableIdentifier(schemaName, tableName)))
+        carbonTable.getStorePath, new CarbonTableIdentifier(schemaName, tableName)))
 
     val invalidLoadIds = segmentStatusManager.updateDeletionStatus(loadids.asJava, path).asScala
 
@@ -1323,7 +1323,7 @@ private[sql] case class DeleteLoadsByLoadDate(
     var carbonTable = org.carbondata.core.carbon.metadata.CarbonMetadata.getInstance()
       .getCarbonTable(schemaName + '_' + tableName)
     var segmentStatusManager = new SegmentStatusManager(new AbsoluteTableIdentifier(
-        carbonTable.getStoreLocation, new CarbonTableIdentifier(schemaName, tableName)))
+        carbonTable.getStorePath, new CarbonTableIdentifier(schemaName, tableName)))
 
     if (null == carbonTable) {
       var relation = CarbonEnv.getInstance(sqlContext).carbonCatalog.lookupRelation1(
@@ -1390,7 +1390,7 @@ private[sql] case class LoadCube(
       val carbonLoadModel = new CarbonLoadModel()
       carbonLoadModel.setTableName(relation.cubeMeta.carbonTableIdentifier.getTableName)
       carbonLoadModel.setDatabaseName(relation.cubeMeta.carbonTableIdentifier.getDatabaseName)
-      carbonLoadModel.setStoreLocation(relation.cubeMeta.storePath)
+      carbonLoadModel.setStorePath(relation.cubeMeta.storePath)
       if (dimFilesPath.isEmpty) {
         carbonLoadModel.setDimFolderPath(null)
       }
@@ -1826,7 +1826,7 @@ private[sql] case class ShowLoads(
     val path = carbonTable.getMetaDataFilepath()
 
     var segmentStatusManager = new SegmentStatusManager(new AbsoluteTableIdentifier(
-      carbonTable.getStoreLocation, new CarbonTableIdentifier(schemaName, tableName)))
+      carbonTable.getStorePath, new CarbonTableIdentifier(schemaName, tableName)))
 
     val loadMetadataDetailsArray = segmentStatusManager.readLoadMetadata(path)
 
@@ -2017,7 +2017,7 @@ private[sql] case class CleanFiles(
     val table = relation.cubeMeta.carbonTable
     carbonLoadModel.setAggTables(table.getAggregateTablesName.asScala.toArray)
     carbonLoadModel.setTableName(table.getFactTableName)
-    carbonLoadModel.setStoreLocation(relation.cubeMeta.storePath)
+    carbonLoadModel.setStorePath(relation.cubeMeta.storePath)
     val dataLoadSchema = new CarbonDataLoadSchema(table)
     carbonLoadModel.setCarbonDataLoadSchema(dataLoadSchema)
     CarbonDataRDDFactory.cleanFiles(
