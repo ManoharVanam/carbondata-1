@@ -56,6 +56,30 @@ class TestCreateTableSyntax extends QueryTest with BeforeAndAfterAll {
     }
   }
 
+  test("test create carbon table with duplicate fields in dictionary exclude") {
+    try {
+      sql("create table carbontable(id int, name string, dept string, mobile array<string>, "+
+          "country string, salary double) STORED BY 'org.apache.carbondata.format' " +
+          "TBLPROPERTIES('DICTIONARY_EXCLUDE'='dept,dept')")
+    } catch {
+      case e : MalformedCarbonCommandException => {
+        assert(e.getMessage.equals("Error: Duplicate dictionary exclude field(s): dept"))
+      }
+    }
+  }
+
+  test("test create carbon table with duplicate fields in dictionary include") {
+    try {
+      sql("create table carbontable(id int, name string, dept string, mobile array<string>, "+
+          "country string, salary double) STORED BY 'org.apache.carbondata.format' " +
+          "TBLPROPERTIES('DICTIONARY_INCLUDE'='dept,dept,name,name')")
+    } catch {
+      case e : MalformedCarbonCommandException => {
+        assert(e.getMessage.equals("Error: Duplicate dictionary include field(s): dept,name"))
+      }
+    }
+  }
+
   override def afterAll {
   }
 }

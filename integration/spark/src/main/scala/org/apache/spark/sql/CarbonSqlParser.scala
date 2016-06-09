@@ -589,6 +589,12 @@ class CarbonSqlParser()
     // All excluded cols should be there in create table cols
     if (tableProperties.get("DICTIONARY_EXCLUDE").isDefined) {
       dictExcludeCols = tableProperties.get("DICTIONARY_EXCLUDE").get.split(',').map(_.trim)
+      val dupDictExcludeCols = getDuplicateCols(dictExcludeCols.toList)
+      if(!dupDictExcludeCols.isEmpty)
+        {
+          val errorMessage = "Error: Duplicate dictionary exclude field(s): " + dupDictExcludeCols
+          throw new MalformedCarbonCommandException(errorMessage)
+        }
       dictExcludeCols
         .map { dictExcludeCol =>
           if (!fields.exists(x => x.column.equalsIgnoreCase(dictExcludeCol))) {
@@ -606,6 +612,12 @@ class CarbonSqlParser()
     // All included cols should be there in create table cols
     if (tableProperties.get("DICTIONARY_INCLUDE").isDefined) {
       dictIncludeCols = tableProperties.get("DICTIONARY_INCLUDE").get.split(",").map(_.trim)
+      val dupDictIncludeCols = getDuplicateCols(dictIncludeCols)
+      if(!dupDictIncludeCols.isEmpty)
+      {
+        val errorMessage = "Error: Duplicate dictionary include field(s): " + dupDictIncludeCols
+        throw new MalformedCarbonCommandException(errorMessage)
+      }
       dictIncludeCols.map { distIncludeCol =>
           if (!fields.exists(x => x.column.equalsIgnoreCase(distIncludeCol))) {
             val errormsg = "DICTIONARY_INCLUDE column: " + distIncludeCol +
@@ -643,6 +655,22 @@ class CarbonSqlParser()
 
     (dimFields.toSeq, noDictionaryDims)
   }
+
+  // returns duplicate fields
+  private def getDuplicateCols(dictCols: Seq[String]): (String) = {
+    val duplicateCols = dictCols.groupBy(x => x) filter {
+      case (_, itemList) => itemList.length > 1
+    }
+    var duplicates = Seq[String]()
+    if (duplicateCols.size > 0) {
+      duplicateCols.foreach(x => {
+        duplicates :+= x._1
+      }
+      )
+    }
+    (duplicates.mkString(","))
+  }
+
   /**
    * It fills non string dimensions in dimFields
    */
@@ -899,17 +927,17 @@ class CarbonSqlParser()
       "COMPLEX_DELIMITER_LEVEL_1", "COMPLEX_DELIMITER_LEVEL_2"
     )
     var isSupported = true
-    val invalidOptions = StringBuilder.newBuilder
+    var invalidOptions = Seq[String]()
     options.foreach(value => {
       if (!supportedOptions.exists(x => x.equalsIgnoreCase(value._1))) {
         isSupported = false
-        invalidOptions.append(value._1)
+        invalidOptions :+= value._1
       }
 
     }
     )
     if (!isSupported) {
-      val errorMessage = "Error: Invalid option(s): " + invalidOptions.toString()
+      val errorMessage = "Error: Invalid option(s): " + invalidOptions.mkString(",")
       throw new MalformedCarbonCommandException(errorMessage)
     }
 
@@ -917,13 +945,13 @@ class CarbonSqlParser()
     val duplicateOptions = options filter {
       case (_, optionlist) => optionlist.size > 1
     }
-    val duplicates = StringBuilder.newBuilder
+    var duplicates = Seq[String]()
     if (duplicateOptions.size > 0) {
       duplicateOptions.foreach(x => {
-        duplicates.append(x._1)
+        duplicates :+= x._1
       }
       )
-      val errorMessage = "Error: Duplicate option(s): " + duplicates.toString()
+      val errorMessage = "Error: Duplicate option(s): " + duplicates.mkString(",")
       throw new MalformedCarbonCommandException(errorMessage)
     }
   }
