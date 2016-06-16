@@ -30,6 +30,13 @@ class DataCompactionNoDictionaryTest extends QueryTest with BeforeAndAfterAll {
     segments
   }
 
+  val currentDirectory = new File(this.getClass.getResource("/").getPath + "/../../")
+    .getCanonicalPath
+
+  var csvFilePath1 = currentDirectory + "/src/test/resources/compaction/compaction1.csv"
+  var csvFilePath2 = currentDirectory + "/src/test/resources/compaction/compaction2.csv"
+  var csvFilePath3 = currentDirectory + "/src/test/resources/compaction/compaction3.csv"
+
   override def beforeAll {
 
     sql(
@@ -39,12 +46,7 @@ class DataCompactionNoDictionaryTest extends QueryTest with BeforeAndAfterAll {
         ".format' TBLPROPERTIES('DICTIONARY_EXCLUDE'='country')"
     )
 
-    val currentDirectory = new File(this.getClass.getResource("/").getPath + "/../../")
-      .getCanonicalPath
 
-    var csvFilePath1 = currentDirectory + "/src/test/resources/compaction/compaction1.csv"
-    var csvFilePath2 = currentDirectory + "/src/test/resources/compaction/compaction2.csv"
-    var csvFilePath3 = currentDirectory + "/src/test/resources/compaction/compaction3.csv"
 
     CarbonProperties.getInstance()
       .addProperty(CarbonCommonConstants.CARBON_TIMESTAMP_FORMAT, "yyyy/mm/dd")
@@ -139,6 +141,14 @@ class DataCompactionNoDictionaryTest extends QueryTest with BeforeAndAfterAll {
         Row("iraq"),
         Row("ireland")
       )
+    )
+    sql("LOAD DATA LOCAL INPATH '" + csvFilePath1 + "' INTO TABLE nodictionaryCompaction " +
+        "OPTIONS('DELIMITER' = ',')"
+    )
+    sql("DELETE segment 0.1,3 FROM TABLE nodictionaryCompaction")
+    checkAnswer(
+      sql("select country from nodictionaryCompaction"),
+      Seq()
     )
   }
 
