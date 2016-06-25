@@ -41,6 +41,9 @@ public class LoadMetadataDetails implements Serializable {
    */
   private static final LogService LOGGER =
       LogServiceFactory.getLogService(LoadMetadataDetails.class.getName());
+
+  private static final SimpleDateFormat parser =
+      new SimpleDateFormat(CarbonCommonConstants.CARBON_TIMESTAMP);
   /**
    * Segment modification or deletion time stamp
    */
@@ -155,7 +158,7 @@ public class LoadMetadataDetails implements Serializable {
     if (loadStartTime.isEmpty()) {
       return null;
     }
-    SimpleDateFormat parser = new SimpleDateFormat(CarbonCommonConstants.CARBON_TIMESTAMP);
+
     Date dateToStr = null;
     try {
       dateToStr = parser.parse(loadStartTime);
