@@ -1343,7 +1343,8 @@ private[sql] case class DeleteLoadsById(
       LOGGER.audit("Delete load by Id is successfull.")
     }
     else {
-      sys.error("Delete load by Id is failed. No matching load id found.")
+      sys.error("Delete load by Id is failed. No matching load id found. SegmentSeqId(s) - "
+                + invalidLoadIds)
     }
 
     Seq.empty
