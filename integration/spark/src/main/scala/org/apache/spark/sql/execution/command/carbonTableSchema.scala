@@ -1168,6 +1168,7 @@ private[sql] case class AlterTable(
 
 /**
  * Command for the compaction in alter table command
+ *
  * @param alterTableModel
  */
 private[sql] case class AlterTableCompaction(alterTableModel: AlterTableModel) extends
@@ -1416,7 +1417,12 @@ private[sql] case class DeleteLoadsByLoadDate(
 
     var invalidLoadTimestamps = segmentStatusManager
       .updateDeletionStatus(loadDate, path, timeObj.asInstanceOf[java.lang.Long]).asScala
-    LOGGER.audit("Delete load by load date is successfull.")
+    if(invalidLoadTimestamps.isEmpty) {
+      LOGGER.audit("Delete load by load date is successfull.")
+    }
+    else {
+      LOGGER.audit("Delete load by load date is failed.")
+    }
     Seq.empty
 
   }

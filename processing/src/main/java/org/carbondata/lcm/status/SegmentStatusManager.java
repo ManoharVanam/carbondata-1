@@ -307,24 +307,13 @@ public class SegmentStatusManager {
         if (listOfLoadFolderDetailsArray != null && listOfLoadFolderDetailsArray.length != 0) {
           updateDeletionStatus(loadDate, listOfLoadFolderDetailsArray,
               invalidLoadTimestamps, loadStartTime);
-          if (!invalidLoadTimestamps.isEmpty()) {
-            LOG.warn("Load doesnt exist or it is already deleted , LoadTimestamps-"
-                + invalidLoadTimestamps);
-            if (invalidLoadTimestamps.size() == listOfLoadFolderDetailsArray.length) {
-              LOG.audit(
-                  "The delete load by Id is failed. Failed to delete the following load(s)."
-                      + " LoadSeqId-" + invalidLoadTimestamps);
-              LOG.error("Error message: "
-                  + "Load deletion is failed. Failed to delete the following load(s). LoadSeqId-" +
-                  invalidLoadTimestamps);
-
-            }
-          }
-
           writeLoadDetailsIntoFile(dataLoadLocation, listOfLoadFolderDetailsArray);
 
         } else {
-          LOG.warn("Load doesnt exist or it is already deleted , LoadTimestamp-" + loadDate);
+
+          LOG.audit("Delete load by date is failed. No matching load found.");
+          LOG.error("Error message: "
+              + "Delete load by date is failed. No matching load found.");
           invalidLoadTimestamps.add(loadDate);
           return invalidLoadTimestamps;
         }
@@ -423,7 +412,7 @@ public class SegmentStatusManager {
    * @param invalidLoadTimestamps
    * @return invalidLoadTimestamps
    */
-  public void updateDeletionStatus(String loadDate,
+  public List<String> updateDeletionStatus(String loadDate,
       LoadMetadataDetails[] listOfLoadFolderDetailsArray, List<String> invalidLoadTimestamps,
       Long loadStartTime) {
     // For each load timestamp loop through data and if the
@@ -436,25 +425,25 @@ public class SegmentStatusManager {
       if (null == result) {
         invalidLoadTimestamps.add(loadDate);
       } else if (result < 0) {
-        loadFound = true;
         if (!CarbonCommonConstants.MARKED_FOR_DELETE.equals(loadMetadata.getLoadStatus())) {
+          loadFound = true;
           loadMetadata.setLoadStatus(CarbonCommonConstants.MARKED_FOR_DELETE);
           loadMetadata.setModificationOrdeletionTimesStamp(readCurrentTime());
           LOG.info("Info: " +
               loadStartTimeString + loadMetadata.getLoadStartTime() +
               " Marked for Delete");
-        } else {
-          // it is already deleted . can not delete it again.
-          invalidLoadTimestamps.add(loadMetadata.getLoadStartTime());
         }
       }
+
     }
 
     if (!loadFound) {
       invalidLoadTimestamps.add(loadDate);
+      LOG.audit("Delete load by date is failed. No matching load found.");
+      LOG.error("Delete load by date is failed. No matching load found.");
 
     }
-
+    return invalidLoadTimestamps;
   }
 
   /**
