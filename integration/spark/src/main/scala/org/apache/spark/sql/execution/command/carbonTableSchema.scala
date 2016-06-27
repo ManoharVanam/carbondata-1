@@ -1338,25 +1338,14 @@ private[sql] case class DeleteLoadsById(
 
     val invalidLoadIds = segmentStatusManager.updateDeletionStatus(loadids.asJava, path).asScala
 
-    if (invalidLoadIds.nonEmpty) {
-      if (invalidLoadIds.length == loadids.length) {
-        LOGGER.audit(
-          "Delete load by Id is failed. Failed to delete the following load(s). LoadSeqId-" +
-          invalidLoadIds)
-        sys.error("Load deletion is failed. Failed to delete the following load(s). LoadSeqId-" +
-                  invalidLoadIds)
-      }
-      else {
-        LOGGER.audit(
-          "Delete load by Id is failed. Failed to delete the following load(s). LoadSeqId-" +
-          invalidLoadIds)
-        sys.error(
-          "Load deletion is partial success. Failed to delete the following load(s). LoadSeqId-" +
-          invalidLoadIds)
-      }
+    if (invalidLoadIds.isEmpty) {
+
+      LOGGER.audit("Delete load by Id is successfull.")
+    }
+    else {
+      sys.error("Delete load by Id is failed. No matching load id found.")
     }
 
-    LOGGER.audit("Delete load by Id is successfull.")
     Seq.empty
 
   }
@@ -1421,7 +1410,7 @@ private[sql] case class DeleteLoadsByLoadDate(
       LOGGER.audit("Delete load by load date is successfull.")
     }
     else {
-      LOGGER.audit("Delete load by load date is failed.")
+      sys.error("Delete load by load date is failed. No matching load found.")
     }
     Seq.empty
 

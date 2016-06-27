@@ -253,12 +253,18 @@ public class SegmentStatusManager {
         listOfLoadFolderDetailsArray = readLoadMetadata(cubeFolderPath);
         if (listOfLoadFolderDetailsArray != null && listOfLoadFolderDetailsArray.length != 0) {
           updateDeletionStatus(loadIds, listOfLoadFolderDetailsArray, invalidLoadIds);
-          if (!invalidLoadIds.isEmpty()) {
-            LOG.warn("Load doesnt exist or it is already deleted , LoadSeqId-" + invalidLoadIds);
+          if(invalidLoadIds.isEmpty())
+          {
+            // All or None , if anything fails then dont write
+            writeLoadDetailsIntoFile(dataLoadLocation, listOfLoadFolderDetailsArray);
           }
-          writeLoadDetailsIntoFile(dataLoadLocation, listOfLoadFolderDetailsArray);
+          else
+          {
+            return invalidLoadIds;
+          }
+
         } else {
-          LOG.warn("Load doesnt exist or it is already deleted , LoadSeqId-" + loadIds);
+          LOG.audit("Delete load by Id is failed. No matching load id found.");
           return loadIds;
         }
 
@@ -307,13 +313,16 @@ public class SegmentStatusManager {
         if (listOfLoadFolderDetailsArray != null && listOfLoadFolderDetailsArray.length != 0) {
           updateDeletionStatus(loadDate, listOfLoadFolderDetailsArray,
               invalidLoadTimestamps, loadStartTime);
-          writeLoadDetailsIntoFile(dataLoadLocation, listOfLoadFolderDetailsArray);
+          if(invalidLoadTimestamps.isEmpty()) {
+            writeLoadDetailsIntoFile(dataLoadLocation, listOfLoadFolderDetailsArray);
+          }
+          else
+          {
+            return invalidLoadTimestamps;
+          }
 
         } else {
-
           LOG.audit("Delete load by date is failed. No matching load found.");
-          LOG.error("Error message: "
-              + "Delete load by date is failed. No matching load found.");
           invalidLoadTimestamps.add(loadDate);
           return invalidLoadTimestamps;
         }
@@ -372,7 +381,7 @@ public class SegmentStatusManager {
    * @param invalidLoadIds
    * @return invalidLoadIds
    */
-  public void updateDeletionStatus(List<String> loadIds,
+  public List<String> updateDeletionStatus(List<String> loadIds,
       LoadMetadataDetails[] listOfLoadFolderDetailsArray, List<String> invalidLoadIds) {
     for (String loadId : loadIds) {
       boolean loadFound = false;
@@ -382,26 +391,24 @@ public class SegmentStatusManager {
       for (LoadMetadataDetails loadMetadata : listOfLoadFolderDetailsArray) {
 
         if (loadId.equalsIgnoreCase(loadMetadata.getLoadName())) {
-          loadFound = true;
           if (!CarbonCommonConstants.MARKED_FOR_DELETE.equals(loadMetadata.getLoadStatus())) {
+            loadFound = true;
             loadMetadata.setLoadStatus(CarbonCommonConstants.MARKED_FOR_DELETE);
             loadMetadata.setModificationOrdeletionTimesStamp(readCurrentTime());
             LOG.info("LoadId " + loadId + " Marked for Delete");
-          } else {
-            // it is already deleted . can not delete it again.
-            invalidLoadIds.add(loadId);
           }
-
           break;
         }
       }
 
       if (!loadFound) {
+        LOG.audit("Delete load by Id is failed. No matching load id found.");
         invalidLoadIds.add(loadId);
+        return invalidLoadIds;
       }
 
     }
-
+    return invalidLoadIds;
   }
 
   /**
@@ -422,9 +429,7 @@ public class SegmentStatusManager {
     String loadStartTimeString = "Load Start Time: ";
     for (LoadMetadataDetails loadMetadata : listOfLoadFolderDetailsArray) {
       Integer result = compareDateValues(loadMetadata.getLoadStartTimeAsLong(), loadStartTime);
-      if (null == result) {
-        invalidLoadTimestamps.add(loadDate);
-      } else if (result < 0) {
+      if (result < 0) {
         if (!CarbonCommonConstants.MARKED_FOR_DELETE.equals(loadMetadata.getLoadStatus())) {
           loadFound = true;
           loadMetadata.setLoadStatus(CarbonCommonConstants.MARKED_FOR_DELETE);
@@ -440,8 +445,7 @@ public class SegmentStatusManager {
     if (!loadFound) {
       invalidLoadTimestamps.add(loadDate);
       LOG.audit("Delete load by date is failed. No matching load found.");
-      LOG.error("Delete load by date is failed. No matching load found.");
-
+      return invalidLoadTimestamps;
     }
     return invalidLoadTimestamps;
   }
