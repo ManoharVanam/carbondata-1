@@ -449,8 +449,8 @@ class CarbonSqlParser()
         catch {
           case ce: MalformedCarbonCommandException =>
             val message = if (tableName.isEmpty) "Create table command failed. "
-            else if (!dbName.isDefined) s"Create table for $tableName failed. "
-            else s"Create table for ${dbName.get}.$tableName failed. "
+            else if (!dbName.isDefined) s"Create table command failed for $tableName. "
+            else s"Create table command failed for ${dbName.get}.$tableName. "
             LOGGER.audit(message + ce.getMessage)
             throw ce
         }
