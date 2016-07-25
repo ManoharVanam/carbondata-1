@@ -1629,10 +1629,10 @@ private[sql] case class LoadCube(
       }
     } catch {
       case dle: DataLoadingException =>
-        LOGGER.audit(dle.getMessage)
+        LOGGER.audit(s"Dataload failure for $schemaName.$tableName. " + dle.getMessage)
         throw dle
       case mce: MalformedCarbonCommandException =>
-        LOGGER.audit(mce.getMessage)
+        LOGGER.audit(s"Dataload failure for $schemaName.$tableName. " + mce.getMessage)
         throw mce
     } finally {
       if (carbonLock != null) {
