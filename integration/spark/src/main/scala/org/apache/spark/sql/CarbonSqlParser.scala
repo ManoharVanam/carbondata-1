@@ -36,9 +36,11 @@ import org.apache.spark.sql.execution.command.{DimensionRelation, _}
 import org.apache.spark.sql.execution.datasources.DescribeCommand
 import org.apache.spark.sql.hive.HiveQlWrapper
 
+import org.carbondata.common.logging.LogServiceFactory
 import org.carbondata.core.carbon.metadata.datatype.DataType
 import org.carbondata.core.constants.CarbonCommonConstants
 import org.carbondata.core.util.DataTypeUtil
+import org.carbondata.processing.etl.DataLoadingException
 import org.carbondata.spark.exception.MalformedCarbonCommandException
 import org.carbondata.spark.util.CommonUtil
 
@@ -48,6 +50,7 @@ import org.carbondata.spark.util.CommonUtil
 class CarbonSqlParser()
   extends AbstractSparkSQLParser with Logging {
 
+  val LOGGER = LogServiceFactory.getLogService(this.getClass.getCanonicalName)
   protected val AGGREGATE = carbonKeyWord("AGGREGATE")
   protected val AS = carbonKeyWord("AS")
   protected val AGGREGATION = carbonKeyWord("AGGREGATION")
@@ -308,6 +311,7 @@ class CarbonSqlParser()
         } catch {
           // MalformedCarbonCommandException need to be throw directly, parser will catch it
           case ce: MalformedCarbonCommandException =>
+            LOGGER.audit(ce.getMessage)
             throw ce
           case e: Exception =>
             sys.error("Parsing error") // no need to do anything.
