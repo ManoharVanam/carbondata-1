@@ -223,4 +223,35 @@ class DataRetentionTestCase extends QueryTest with BeforeAndAfterAll {
 
   }
 
+  test("RetentionTest_InvalidDeleteCommands") {
+
+    // All these queries should fail.
+    try {
+      sql("DELETE LOADS FROM TABLE dataretentionTable where STARTTIME before '2099-01-01'")
+      throw new MalformedCarbonCommandException("Invalid query")
+    } catch {
+      case e: MalformedCarbonCommandException =>
+        assert(!e.getMessage.equalsIgnoreCase("Invalid query"))
+      case _ => assert(true)
+    }
+
+    try {
+      sql("DELETE LOAD 2 FROM TABLE dataretentionTable")
+      throw new MalformedCarbonCommandException("Invalid query")
+    } catch {
+      case e: MalformedCarbonCommandException =>
+        assert(!e.getMessage.equalsIgnoreCase("Invalid query"))
+      case _ => assert(true)
+    }
+
+    try {
+      sql("show loads for table dataretentionTable")
+      throw new MalformedCarbonCommandException("Invalid query")
+    } catch {
+      case e: MalformedCarbonCommandException =>
+        assert(!e.getMessage.equalsIgnoreCase("Invalid query"))
+      case _ => assert(true)
+    }
+
+  }
 }
