@@ -133,7 +133,7 @@ class DataRetentionTestCase extends QueryTest with BeforeAndAfterAll {
 
   test("RetentionTest3_DeleteByLoadId") {
     // delete segment 2 and load ind segment
-    sql("DELETE LOAD 2 FROM TABLE dataretentionTable")
+    sql("DELETE SEGMENT 2 FROM TABLE dataretentionTable")
     sql(
       "LOAD DATA LOCAL INPATH '" + resource + "dataretention1.csv' INTO TABLE dataretentionTable " +
       "OPTIONS('DELIMITER' = ',')")
